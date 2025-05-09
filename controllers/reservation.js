@@ -88,38 +88,32 @@ const bookingController = {
 
   async showAllBookings(req, res) {
     try {
-      const { courtName } = req.body;
+      const { name } = req.body;
+
       const court = await prisma.court.findFirst({
-        where: { courtName }
+        where: { name: name }
       })
       if (!court) {
         return res.status(404).json({ error: 'Quadra não encontrada' });
       }
-      const bookings = await prisma.booking.findMany({
-        where: {
-          courtId: court.id  // Filtra pelo ID da quadra encontrada
-        },
-        include: {
-          court: true  // Inclui os dados completos da quadra
-        },
-        orderBy: {
-          date: 'asc'  // Ordena por data (opcional)
-        }
-      });
 
-      // Formata a resposta com apenas os dados essenciais
-    const simplifiedBookings = bookings.map(booking => ({
-      id: booking.id,
-      data: booking.date.toISOString().split('T')[0], // Formata como YYYY-MM-DD
-      horário: `${booking.startTime} - ${booking.endTime}`,
-      cliente: booking.clientName,
-      tipoQuadra: booking.court.type
-    }));
+     // 2. Busca as reservas SEM incluir a quadra
+    const bookings = await prisma.booking.findMany({
+      where: { courtName: court.name }
+    });
 
-      res.json({
-        courtName: court.name,
-        bookingsInfo: simplifiedBookings
-      });
+    // 3. Formata a resposta manualmente
+    const response = {
+      quadra: court.name,
+      reservas: bookings.map(b => ({
+        id: b.id,
+        data: b.date.toISOString().split('T')[0],
+        horario: `${b.startTime} - ${b.endTime}`,
+        cliente: b.clientName
+      }))
+      };
+
+      res.json(response);
     } catch (error) {
       res.status(500).json({ error: 'Erro ao buscar reservas' + error});
     }
