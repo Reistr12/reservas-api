@@ -1,0 +1,31 @@
+// Configuração do gerador do cliente Prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Court {
+  name      String    @id @unique // Definido como String e chave primária
+  type      String
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Booking {
+  id         Int      @id @default(autoincrement())
+  date       DateTime
+  startTime  String
+  endTime    String
+  clientName String
+  courtName  String // Tipo String para corresponder ao name da Court
+  court      Court    @relation(fields: [courtName], references: [name]) // Relaciona com Court.name
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([courtName, date, startTime])
+}

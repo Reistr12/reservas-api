@@ -1,0 +1,38 @@
+// Configuração do gerador do cliente Prisma
+generator client {
+  provider = "prisma-client-js" // Usa o cliente JavaScript do Prisma
+  output   = "../generated/prisma" // Onde os arquivos gerados serão salvos (opcional)
+}
+
+// Configuração da conexão com o banco de dados
+datasource db {
+  provider = "mysql" // Usando banco de dados MySQL
+  url      = env("DATABASE_URL") // URL de conexão pega do arquivo .env
+}
+
+// Modelo Quadra - representa as quadras/espaços físicos
+model Court {
+  id       Int       @id @default(autoincrement()) // Chave primária com auto incremento
+  name     String // Nome da quadra (ex: "Quadra 1")
+  type     String // Tipo de esporte (ex: "Tênis", "Futebol")
+  bookings Booking[] // Relacionamento com as reservas (uma quadra tem muitas reservas)
+
+  // Timestamps (opcionais mas recomendados)
+  createdAt DateTime @default(now()) // Data de criação automática
+  updatedAt DateTime @updatedAt // Data de atualização automática
+}
+
+// Modelo Reserva - representa as reservas feitas pelos usuários
+model Booking {
+  id         Int      @id @default(autoincrement()) // Chave primária
+  date       DateTime // Data da reserva (ex: 2025-05-15)
+  startTime  String // Hora de início (ex: "14:00")
+  endTime    String // Hora de término (ex: "16:00")
+  clientName String // Nome do cliente que fez a reserva
+  court      Court    @relation(fields: [courtId], references: [id]) // Relacionamento com quadra
+  courtId    Int // ID da quadra (chave estrangeira)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
